@@ -3,65 +3,100 @@
 ![Databricks](https://img.shields.io/badge/Databricks-Lakehouse-EF3E42?logo=databricks&logoColor=white)
 ![Apache Spark](https://img.shields.io/badge/Apache_Spark-PySpark-E25A1C?logo=apachespark&logoColor=white)
 ![Delta Lake](https://img.shields.io/badge/Delta_Lake-Full_%26_Incremental_Loads-00ADD8)
-![Power BI](https://img.shields.io/badge/Power_BI-Analytics-F2C811?logo=powerbi&logoColor=black)
 ![AWS S3](https://img.shields.io/badge/AWS-S3-569A31?logo=amazons3&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power_BI-Analytics-F2C811?logo=powerbi&logoColor=black)
 ![SQL](https://img.shields.io/badge/SQL-Analytics-4479A1)
 ![Status](https://img.shields.io/badge/Status-Portfolio_Project-2563EB)
 
-An end-to-end ride analytics project built with **Databricks, PySpark, Delta Lake, SQL, AWS S3, and Power BI**.
+An end-to-end ride analytics project built with **Databricks, PySpark, Delta Lake, AWS S3, SQL, and Power BI**.
 
-The pipeline ingests ride-level data, validates and standardizes records, enriches trips with city and calendar dimensions, and publishes an analytics-ready Gold table. It supports both full refreshes and incremental Delta Lake upserts.
+The project processes ride-level data through a lakehouse pipeline, validates and standardizes incoming records, enriches trips with city and calendar dimensions, and publishes an analytics-ready Gold table.
 
-The final Power BI dashboard analyzes approximately **366K trips**, **₹94M in sales**, **3M kilometres travelled**, ratings, passenger behavior, city performance, and time-based trends.
+It supports both full refreshes and incremental Delta Lake upserts. The final dataset powers an executive dashboard covering approximately **366K trips**, **₹94M in sales**, **3M kilometres travelled**, customer behavior, city performance, and service-quality metrics.
 
 ---
 
-## Final Power BI Dashboard
+## Executive Dashboard
 
-![OLA Ride Performance Power BI Dashboard](docs/ola-power-bi-dashboard.png)
+<p align="center">
+  <img
+    src="docs/Codex%20Image%20Sep%2011%2C%202026%2C%2012_59_49%20AM.png"
+    alt="OLA Ride Performance Analytics — Databricks Lakehouse and Power BI Dashboard"
+    width="100%"
+  />
+</p>
 
-### Dashboard KPIs
+<p align="center">
+  <strong>AWS S3 → Bronze → Silver → Gold → Power BI</strong>
+</p>
+
+The dashboard combines financial, operational, customer, and service-quality metrics into one reporting view.
+
+### Key results
 
 | KPI | Dashboard Result |
 |---|---:|
 | Total sales | Approximately ₹94M |
 | Total trips | Approximately 366K |
-| Total distance | Approximately 3M KM |
+| Total distance | Approximately 3.0M KM |
 | Average driver rating | 7.85 |
 | Average passenger rating | 7.92 |
 | Cities analyzed | 10 |
 | Analysis period | August–December 2025 |
 
-The dashboard includes interactive filters for:
+### Dashboard filters
 
 - Business date
 - City
 - Passenger category
-- Weekend or weekday
+- Weekday or weekend
+
+### Dashboard visuals
+
+- Sales by city
+- Monthly sales trend
+- Driver rating by city
+- Passenger composition
+- Weekday versus weekend demand
+- Trips by day
+- City performance summary
 
 ---
 
-## Business Questions
+## Business Problem
 
-The analytical model and dashboard answer the following questions:
+Ride platforms generate large volumes of trip-level records across different cities and dates.
+
+Raw trip files alone cannot reliably support reporting because they may contain:
+
+- Duplicate trip IDs
+- Missing business keys
+- Invalid ratings
+- Negative fares or distances
+- Inconsistent passenger categories
+- Updates to previously received trips
+- Records that do not match a valid city
+
+This project creates a controlled pipeline that converts these raw files into a validated analytical model.
+
+The final dataset helps answer questions such as:
 
 - Which cities generate the highest sales?
-- How does monthly sales performance change over time?
-- Which cities have the highest driver ratings?
-- How do passenger ratings vary by city?
-- What percentage of trips comes from new and repeated passengers?
+- How does revenue change month by month?
+- Which cities have the strongest trip demand?
+- What percentage of trips comes from repeated passengers?
 - How does demand differ between weekdays and weekends?
-- Which days generate the highest trip volumes?
-- How much total distance is covered in each city?
-- Are passenger and driver ratings aligned across markets?
+- Which days of the week generate the most trips?
+- Which cities have the best driver and passenger ratings?
+- Are high-revenue cities also delivering strong service quality?
 
 ---
 
-## Project Architecture
+## Solution Architecture
 
 ```mermaid
 flowchart LR
-    subgraph Sources["Data Sources"]
+    subgraph Sources["Source Data"]
         A[Daily Trip CSV Files]
         B[City Reference Data]
     end
@@ -70,13 +105,13 @@ flowchart LR
         C[AWS S3 Landing Zone]
     end
 
-    subgraph Databricks["Databricks Lakehouse"]
+    subgraph Lakehouse["Databricks Lakehouse"]
         D[Bronze Layer]
         E[Silver Layer]
         F[Gold Layer]
     end
 
-    subgraph Serving["Analytics & Serving"]
+    subgraph Serving["Serving Layer"]
         G[Databricks SQL View]
         H[Power BI Dashboard]
     end
@@ -90,7 +125,7 @@ flowchart LR
     G --> H
 ```
 
-### End-to-end flow
+### End-to-end data flow
 
 ```text
 Trip and City CSV Files
@@ -99,22 +134,24 @@ Trip and City CSV Files
 AWS S3 Landing Zone
           │
           ▼
-Bronze Delta Data
-Raw records + source metadata
+Bronze Layer
+Raw records, source filename and ingestion timestamp
           │
           ▼
-Silver Trip Data
-Cleaning + validation + deduplication
+Silver Layer
+Validation, standardization and deduplication
           │
           ▼
-Gold fact_trips
-City + calendar enrichment
+Gold Layer
+City and calendar enrichment
           │
           ▼
 Databricks SQL View
+Analytics-ready reporting interface
           │
           ▼
 Power BI Dashboard
+KPIs, trends, rankings and customer insights
 ```
 
 ---
@@ -123,65 +160,61 @@ Power BI Dashboard
 
 | Layer | Technology | Responsibility |
 |---|---|---|
-| Cloud storage | AWS S3 | Stores source and incremental files |
-| Lakehouse platform | Databricks | Executes the data pipeline |
-| Processing engine | Apache Spark | Distributed data transformations |
-| Programming | PySpark | Cleans, validates and enriches data |
-| Table format | Delta Lake | Full loads and incremental upserts |
-| Governance | Unity Catalog | Organizes catalog, schema and table access |
+| Cloud storage | AWS S3 | Stores full-load and incremental files |
+| Lakehouse platform | Databricks | Runs the transformation workflow |
+| Processing engine | Apache Spark | Performs distributed processing |
+| Programming language | PySpark | Implements data transformations |
+| Table format | Delta Lake | Stores reliable analytical tables |
+| Governance | Unity Catalog | Organizes catalogs, schemas, and tables |
 | Analytics | Databricks SQL | Exposes the reporting dataset |
-| Visualization | Power BI | Presents business KPIs and trends |
-| Data modeling | SQL and DAX | Defines the reporting view and dashboard measures |
-| Validation | Python | Performs credential-free repository checks |
+| Visualization | Power BI | Displays KPIs and analytical insights |
+| Data modeling | SQL | Creates the dashboard-facing view |
+| Measures | DAX | Defines reusable Power BI calculations |
+| Validation | Python | Checks repository structure and assets |
 
 ---
 
-## Lakehouse Layers
+## Medallion Architecture
 
-### Bronze layer
+### Bronze Layer
 
-The Bronze layer ingests ride data with an explicit schema and operational metadata.
+The Bronze layer ingests source files with an explicit schema and operational metadata.
 
 ```python
-def read_bronze_trips(spark: SparkSession, path: str) -> DataFrame:
+def read_bronze_trips(
+    spark: SparkSession,
+    path: str
+) -> DataFrame:
     return (
         spark.read
         .option("header", True)
         .schema(TRIP_SCHEMA)
         .csv(path)
-        .withColumn("source_file", F.input_file_name())
-        .withColumn("ingested_at", F.current_timestamp())
+        .withColumn(
+            "source_file",
+            F.input_file_name()
+        )
+        .withColumn(
+            "ingested_at",
+            F.current_timestamp()
+        )
     )
 ```
 
 Bronze responsibilities:
 
-- Read trip CSV files
-- Apply a defined schema
+- Read CSV files from the supplied storage path
+- Apply a defined Spark schema
 - Preserve source records
-- Record the input filename
-- Add the ingestion timestamp
+- Capture the source filename
+- Add an ingestion timestamp
 - Provide traceability for downstream processing
 
 ---
 
-### Silver layer
+### Silver Layer
 
-The Silver layer applies data-quality rules and standardizes the ride records.
-
-Implemented transformations include:
-
-- Renaming business columns
-- Standardizing passenger categories
-- Casting dates and numeric values
-- Rejecting missing trip IDs
-- Rejecting missing business dates
-- Rejecting missing city IDs
-- Rejecting negative fare values
-- Rejecting negative distances
-- Validating ratings between 1 and 10
-- Removing duplicate trip IDs
-- Keeping the most recently ingested record
+The Silver layer standardizes and validates the Bronze records.
 
 ```python
 valid = (
@@ -190,31 +223,54 @@ valid = (
         "passenger_category",
         F.lower(F.trim("passenger_type"))
     )
-    .withColumnRenamed("date", "business_date")
+    .withColumnRenamed(
+        "date",
+        "business_date"
+    )
     .withColumnRenamed(
         "distance_travelled_km",
         "distance_kms"
     )
-    .withColumnRenamed("fare_amount", "sales_amt")
+    .withColumnRenamed(
+        "fare_amount",
+        "sales_amt"
+    )
     .filter(F.col("trip_id").isNotNull())
     .filter(F.col("business_date").isNotNull())
     .filter(F.col("city_id").isNotNull())
     .filter(F.col("distance_kms") >= 0)
     .filter(F.col("sales_amt") >= 0)
-    .filter(F.col("passenger_rating").between(1, 10))
-    .filter(F.col("driver_rating").between(1, 10))
+    .filter(
+        F.col("passenger_rating").between(1, 10)
+    )
+    .filter(
+        F.col("driver_rating").between(1, 10)
+    )
 )
 ```
 
+Silver transformations include:
+
+- Standardizing passenger categories
+- Renaming business columns
+- Validating mandatory identifiers
+- Rejecting negative distance values
+- Rejecting negative sales amounts
+- Validating driver ratings
+- Validating passenger ratings
+- Deduplicating records by trip ID
+
 ### Deduplication strategy
 
-Duplicate trip IDs are resolved using an ingestion-time window:
+When multiple records have the same trip ID, the pipeline keeps the latest ingested version.
 
 ```python
 newest_record = (
     Window
     .partitionBy("trip_id")
-    .orderBy(F.col("ingested_at").desc())
+    .orderBy(
+        F.col("ingested_at").desc()
+    )
 )
 
 silver = (
@@ -228,23 +284,25 @@ silver = (
 )
 ```
 
-This makes the latest ingested version of a trip the trusted Silver record.
-
 ---
 
-### Gold layer
+### Gold Layer
 
-The Gold layer combines:
-
-- Validated trip records
-- City reference data
-- Calendar attributes
+The Gold layer combines validated trips with city and calendar information.
 
 ```python
 gold = (
     trips
-    .join(F.broadcast(cities), "city_id", "inner")
-    .join(calendar, "business_date", "inner")
+    .join(
+        F.broadcast(cities),
+        "city_id",
+        "inner"
+    )
+    .join(
+        calendar,
+        "business_date",
+        "inner"
+    )
     .select(
         "trip_id",
         "business_date",
@@ -270,7 +328,7 @@ gold = (
 )
 ```
 
-The output is published as:
+The resulting dataset is published as:
 
 ```text
 transportation.gold.fact_trips
@@ -278,13 +336,13 @@ transportation.gold.fact_trips
 
 ---
 
-## Incremental Processing
+## Full and Incremental Loads
 
 The pipeline supports two execution modes.
 
 ### Full load
 
-A full load overwrites the target Delta table and partitions it by year and month:
+The full-load path creates or replaces the Gold Delta table.
 
 ```python
 gold.write \
@@ -294,9 +352,11 @@ gold.write \
     .saveAsTable(table_name)
 ```
 
+The Gold table is partitioned by year and month to support common time-range queries.
+
 ### Incremental load
 
-Incremental records are upserted through Delta Lake `MERGE` using `trip_id` as the business key:
+Incremental files are upserted with Delta Lake `MERGE`.
 
 ```python
 target.alias("target") \
@@ -309,35 +369,51 @@ target.alias("target") \
     .execute()
 ```
 
-This design provides:
+The incremental strategy provides:
 
-- Repeatable incremental ingestion
-- Updates for previously received trips
-- Inserts for new trips
-- Protection against duplicate business keys
+- Inserts for newly received trips
+- Updates for corrected trip records
+- Protection against duplicate trip IDs
+- Repeatable incremental processing
 - A single current version of each trip
 
 ---
 
-## Calendar Dimension
+## Data Quality Rules
 
-The pipeline generates calendar attributes for the available trip-date range.
-
-Generated attributes include:
-
-| Attribute | Purpose |
+| Rule | Invalid record handling |
 |---|---|
-| `year` | Annual analysis |
+| Trip ID must exist | Record removed |
+| Business date must exist | Record removed |
+| City ID must exist | Record removed |
+| Distance must be zero or greater | Record removed |
+| Sales amount must be zero or greater | Record removed |
+| Driver rating must be between 1 and 10 | Record removed |
+| Passenger rating must be between 1 and 10 | Record removed |
+| Trip ID must be unique | Latest ingested record retained |
+| City ID must exist in city data | Unmatched record excluded from Gold |
+
+---
+
+## Calendar Enrichment
+
+The pipeline dynamically builds a calendar dimension using the minimum and maximum trip dates.
+
+Generated calendar attributes include:
+
+| Attribute | Analytical use |
+|---|---|
+| `year` | Annual reporting |
 | `month` | Numerical month sorting |
-| `month_name` | Dashboard display |
-| `quarter` | Quarterly reporting |
-| `week_of_year` | Weekly analysis |
-| `day_of_week` | Day-level demand analysis |
+| `month_name` | Dashboard labels |
+| `quarter` | Quarterly analysis |
+| `week_of_year` | Weekly trend analysis |
+| `day_of_week` | Day-level demand |
 | `is_weekday` | Weekday segmentation |
 | `is_weekend` | Weekend segmentation |
-| `national_holiday` | Holiday performance analysis |
+| `national_holiday` | Holiday analysis |
 
-The implementation marks these Indian national holidays:
+The implementation identifies:
 
 - Republic Day
 - Independence Day
@@ -388,7 +464,7 @@ erDiagram
 
 ## Reporting View
 
-The Gold Delta table is exposed through a dedicated analytics view:
+The Gold fact table is exposed through a dedicated analytics view.
 
 ```sql
 CREATE OR REPLACE VIEW
@@ -415,15 +491,19 @@ SELECT
 FROM transportation.gold.fact_trips;
 ```
 
-Source: [`sql/dashboard_dataset.sql`](sql/dashboard_dataset.sql)
+Source:
 
-This provides Power BI with a stable reporting interface instead of connecting directly to intermediate pipeline data.
+[`sql/dashboard_dataset.sql`](sql/dashboard_dataset.sql)
+
+Using a reporting view provides Power BI with a stable interface without exposing intermediate pipeline tables.
 
 ---
 
 ## Power BI Measures
 
-The dashboard uses the following DAX measures:
+The dashboard uses reusable DAX measures stored in:
+
+[`powerbi/measures.dax`](powerbi/measures.dax)
 
 ```DAX
 Total Sales =
@@ -442,84 +522,36 @@ Average Passenger Rating =
 AVERAGE(fact_trips[passenger_rating])
 ```
 
-Source: [`powerbi/measures.dax`](powerbi/measures.dax)
-
 ---
 
-## Dashboard Components
-
-### KPI cards
-
-- Total sales
-- Total trips
-- Total distance
-- Average driver rating
-- Average passenger rating
-
-### Analytical visuals
-
-- Sales by city
-- Monthly sales trend
-- Driver rating by city
-- Passenger rating by city
-- Trips by passenger category
-- Weekend versus weekday trips
-- Trips by day
-- City performance matrix
-
-### Filters
-
-- Business date
-- City
-- Passenger category
-- Weekday or weekend
-
----
-
-## Dashboard Analysis
+## Dashboard Insights
 
 ### City performance
 
-The dashboard shows Jaipur as the leading city by sales, followed by Lucknow and Hyderabad.
+The dashboard compares sales, trip volume, travelled distance, and service ratings across ten cities.
 
-City-level comparisons combine:
+Jaipur appears as the highest-sales city in the displayed reporting period, followed by Lucknow and Hyderabad.
 
-- Total sales
-- Trip volume
-- Distance travelled
-- Driver rating
-- Passenger rating
+### Monthly performance
 
-### Monthly trend
-
-Sales rise across the August–December analysis period, with December showing the strongest monthly performance.
+The monthly trend visual shows sales growth across the August–December analysis period.
 
 ### Passenger composition
 
-The dashboard separates:
+Trips are segmented into:
 
 - New passengers
 - Repeated passengers
 
-This supports retention and repeat-usage analysis.
+This supports repeat-usage and passenger-retention analysis.
 
-### Weekly behavior
+### Weekday and weekend demand
 
-The weekday/weekend split and trips-by-day chart reveal how ride demand changes throughout the week.
+The dashboard separates weekday and weekend journeys to show differences in travel behavior.
 
 ### Service quality
 
-Driver and passenger ratings are compared across cities to identify markets with strong revenue but weaker experience scores.
-
----
-
-## Browser Dashboard Preview
-
-A browser-based dashboard was also created to reproduce the analytical layout outside Power BI.
-
-![OLA browser dashboard preview](docs/dashboard-browser-preview.png)
-
-The browser version is a presentation prototype built from the dashboard metrics. The Power BI screenshot above is the implementation evidence.
+Driver and passenger ratings are compared by city, helping identify markets with strong commercial performance but weaker customer experience.
 
 ---
 
@@ -545,8 +577,7 @@ ola-ride-performance-analytics/
 │   └── validate_project.py
 │
 ├── docs/
-│   ├── ola-power-bi-dashboard.png
-│   └── dashboard-browser-preview.png
+│   └── Codex Image Sep 11, 2026, 12_59_49 AM.png
 │
 ├── requirements.txt
 ├── .gitignore
@@ -555,9 +586,9 @@ ola-ride-performance-analytics/
 
 ---
 
-## Input Schemas
+## Input Data
 
-### Trip data
+### Trip schema
 
 ```text
 trip_id
@@ -579,7 +610,7 @@ TRIP002,2026-01-01,UP01,repeated,7,105,9,8
 TRIP003,2026-01-02,GJ01,new,18,270,7,9
 ```
 
-### City data
+### City schema
 
 ```text
 city_id
@@ -595,7 +626,7 @@ UP01,Lucknow
 GJ01,Surat
 ```
 
-The repository contains a small synthetic sample for schema review. The full training dataset is excluded because redistribution rights were not supplied.
+The repository contains a small synthetic dataset for reviewing the expected schema. The complete training dataset is excluded because redistribution rights were not supplied.
 
 ---
 
@@ -606,34 +637,41 @@ The repository contains a small synthetic sample for schema review. The full tra
 - Python 3.10 or newer
 - Apache Spark
 - Delta Lake
-- Databricks workspace for the managed-table workflow
+- Databricks workspace
 - Unity Catalog permissions
-- Storage accessible by Databricks
+- Storage accessible from Databricks
 - Power BI Desktop for dashboard recreation
 
-### Install dependencies
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/syedsaud15/ola-ride-performance-analytics.git
+cd ola-ride-performance-analytics
+```
+
+### 2. Create a virtual environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment:
+Activate it:
 
 ```bash
 # Windows
 .venv\Scripts\activate
 
-# macOS/Linux
+# macOS or Linux
 source .venv/bin/activate
 ```
 
-Install dependencies:
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Full load
+### 4. Run a full load
 
 ```bash
 spark-submit src/ola_pipeline.py \
@@ -643,7 +681,7 @@ spark-submit src/ola_pipeline.py \
   --mode full
 ```
 
-An S3 input can be supplied directly:
+Example using AWS S3:
 
 ```bash
 spark-submit src/ola_pipeline.py \
@@ -653,7 +691,7 @@ spark-submit src/ola_pipeline.py \
   --mode full
 ```
 
-### Incremental load
+### 5. Run an incremental load
 
 ```bash
 spark-submit src/ola_pipeline.py \
@@ -663,7 +701,7 @@ spark-submit src/ola_pipeline.py \
   --mode incremental
 ```
 
-### Create the reporting view
+### 6. Create the reporting view
 
 Run:
 
@@ -671,31 +709,29 @@ Run:
 sql/dashboard_dataset.sql
 ```
 
-Then connect Power BI to:
+The resulting view is:
 
 ```text
 transportation.gold.vw_ride_performance
 ```
 
----
+### 7. Connect Power BI
 
-## Data Quality Rules
+Connect Power BI to the Databricks SQL warehouse and select:
 
-| Rule | Invalid-record handling |
-|---|---|
-| `trip_id` must exist | Record removed |
-| `business_date` must exist | Record removed |
-| `city_id` must exist | Record removed |
-| Distance must be zero or greater | Record removed |
-| Sales amount must be zero or greater | Record removed |
-| Passenger rating must be 1–10 | Record removed |
-| Driver rating must be 1–10 | Record removed |
-| Trip ID must be unique | Latest ingested record retained |
-| City ID must exist in city reference | Unmatched record excluded from Gold |
+```text
+transportation.gold.vw_ride_performance
+```
+
+Create the measures from:
+
+```text
+powerbi/measures.dax
+```
 
 ---
 
-## Repository Validation
+## Local Validation
 
 Run the credential-free checks:
 
@@ -704,91 +740,98 @@ python -m py_compile src/ola_pipeline.py
 python scripts/validate_project.py
 ```
 
-The validation script checks:
+The validation script checks that:
 
-- Required project files exist
-- Pipeline Python syntax is valid
+- Required pipeline files exist
+- Python syntax is valid
 - Sample CSV files contain records
-- Dashboard evidence is present
+- SQL and Power BI assets are present
+- Dashboard evidence exists
 
-A live integration run still requires Databricks, Delta Lake, cloud storage, and Power BI credentials.
+These checks do not replace a live Databricks integration run.
 
 ---
 
 ## Engineering Decisions
 
-### Explicit schemas
+### Explicit Spark schemas
 
-Using defined Spark schemas prevents inconsistent inference across multiple daily files.
+Explicit schemas prevent inconsistent type inference across daily CSV files.
+
+### Latest-record deduplication
+
+Window-based deduplication ensures that corrected trip records replace older versions.
 
 ### Broadcast city join
 
-The city reference is a small dimension, making it suitable for a broadcast join and avoiding a larger shuffle.
+City data is a small reference dataset, making it suitable for a broadcast join and reducing shuffle overhead.
 
-### Partitioning by year and month
+### Year and month partitioning
 
-The full-load Gold table is partitioned by year and month to support common time-range queries.
+The Gold table is partitioned by year and month because time-based filtering is common in analytical workloads.
 
 ### Delta Lake upserts
 
-Delta `MERGE` supports both new trip insertion and correction of previously received records.
+Delta `MERGE` handles new records and corrections without requiring a full table rebuild.
 
-### Separate SQL serving view
+### Separate reporting view
 
-Power BI reads from a stable SQL view, allowing the Gold table implementation to change without forcing dashboard-level query changes.
+Power BI reads from a stable SQL view, keeping dashboard logic independent of the underlying physical table.
 
-### Ingestion metadata
+### Operational metadata
 
-Source filename and ingestion timestamp improve traceability and help identify the origin of incorrect records.
+Source filename and ingestion timestamp make records easier to trace during investigation.
 
 ---
 
-## Security and Repository Hygiene
+## Repository Security
 
 - No AWS credentials are committed.
-- No Databricks tokens are committed.
+- No Databricks access tokens are committed.
 - No Power BI credentials are committed.
-- Environment and cache files are excluded through `.gitignore`.
-- The full source dataset is not redistributed.
-- Only synthetic sample records are tracked.
+- Local environment files are excluded.
+- Python cache files are excluded.
+- The complete source dataset is not redistributed.
+- Tracked sample records are synthetic.
 
 ---
 
 ## Current Limitations
 
-This is a portfolio implementation and requires external services for complete execution.
+This is a portfolio implementation that requires external platforms for complete execution.
 
-The repository does not currently contain:
+The repository currently does not include:
 
 - Infrastructure as Code
-- An automated Databricks deployment workflow
-- A live Power BI report file
-- Automated pipeline alerting
-- Data-quality quarantine tables
+- Automated Databricks deployment
+- A deployable Power BI report file
+- Automated pipeline monitoring
+- Quarantine tables for rejected records
 - Production-scale performance benchmarks
-- Automated integration tests against a Databricks workspace
+- Integration tests against a live workspace
 
-These boundaries are documented so every public claim remains supported by repository code or dashboard evidence.
+These limitations are documented so the public claims remain supported by repository code and dashboard evidence.
 
 ---
 
 ## Future Improvements
 
-- Add a rejected-record quarantine table
-- Add pipeline audit metrics
+- Add a rejected-record quarantine layer
+- Add pipeline audit and row-count metrics
 - Add Databricks job configuration
-- Add data-quality summary tables
-- Add late-arriving record handling
-- Add unit tests using a local Spark session
-- Add automated deployment for Databricks assets
-- Add dashboard refresh monitoring
-- Add incremental ingestion checkpoints
+- Add late-arriving data handling
+- Add automated data-quality summaries
+- Add a Docker-based local Spark environment
+- Add live integration tests
+- Add Power BI refresh monitoring
+- Add automated deployment of Databricks assets
 
 ---
 
 ## Author
 
-**Syed Saud Alam**  
+**Syed Saud Alam**
+
 Data Engineer focused on Python, SQL, PySpark, Databricks, Snowflake, dbt, Apache Airflow, Power BI, and cloud data platforms.
 
 - [GitHub](https://github.com/syedsaud15)
