@@ -1,0 +1,5 @@
+trip_id,date,city_id,passenger_type,distance_travelled_km,fare_amount,passenger_rating,driver_rating
+TRIP001,2026-01-01,RJ01,new,12,180,8,9
+TRIP002,2026-01-01,UP01,repeated,7,105,9,8
+TRIP003,2026-01-02,GJ01,new,18,270,7,9
+

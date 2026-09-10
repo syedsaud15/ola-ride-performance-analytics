@@ -1,0 +1,6 @@
+Total Sales = SUM(fact_trips[sales_amt])
+Total Trips = COUNTROWS(fact_trips)
+Total Distance = SUM(fact_trips[distance_kms])
+Average Driver Rating = AVERAGE(fact_trips[driver_rating])
+Average Passenger Rating = AVERAGE(fact_trips[passenger_rating])
+
